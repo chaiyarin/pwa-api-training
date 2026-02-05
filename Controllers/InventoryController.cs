@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using pwa_api.Data;
+using pwa_api.Models;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -16,6 +19,13 @@ public class InventoryItem
 [Route("api/v1/inventories")]
 public class InventoryController : ControllerBase
 {
+    private readonly InventoryDbContext _context;
+
+    public InventoryController(InventoryDbContext context)
+    {
+        _context = context;
+    }
+
     [HttpGet]
     public ActionResult<List<InventoryItem>> GetInventories()
     {
@@ -56,5 +66,37 @@ public class InventoryController : ControllerBase
         
         Response.Headers.Append("ETag", etag);
         return Ok(inventories);
+    }
+
+    [HttpGet("computers")]
+    public async Task<ActionResult<PaginatedResponse<ComputerInventoryItem>>> GetComputerInventories(
+        [FromQuery] int limit = 10,
+        [FromQuery] int page = 1)
+    {
+        if (limit <= 0) limit = 10;
+        if (page <= 0) page = 1;
+        if (limit > 100) limit = 100; // Max limit
+
+        var totalItems = await _context.ComputerInventories.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalItems / (double)limit);
+
+        var items = await _context.ComputerInventories
+            .OrderBy(x => x.Id)
+            .Skip((page - 1) * limit)
+            .Take(limit)
+            .ToListAsync();
+
+        var response = new PaginatedResponse<ComputerInventoryItem>
+        {
+            Items = items,
+            Page = page,
+            Limit = limit,
+            TotalItems = totalItems,
+            TotalPages = totalPages,
+            HasNextPage = page < totalPages,
+            HasPreviousPage = page > 1
+        };
+
+        return Ok(response);
     }
 }
