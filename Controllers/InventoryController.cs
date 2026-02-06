@@ -99,4 +99,48 @@ public class InventoryController : ControllerBase
 
         return Ok(response);
     }
+
+    [HttpPost]
+    public async Task<ActionResult<InventoryItem>> CreateInventory([FromBody] CreateInventoryRequest request)
+    {
+        var entity = new InventoryItemEntity
+        {
+            Name = request.Name,
+            Price = request.Price,
+            PictureUrl = $"https://picsum.photos/seed/{request.Name.ToLower().Replace(" ", "")}/400/400"
+        };
+
+        _context.InventoryItems.Add(entity);
+        await _context.SaveChangesAsync();
+
+        var response = new InventoryItem
+        {
+            Name = entity.Name,
+            Price = entity.Price,
+            PictureUrl = entity.PictureUrl
+        };
+
+        return CreatedAtAction(nameof(GetInventoriesFromEfCore), new { }, response);
+    }
+
+    [HttpGet("efcore")]
+    public async Task<ActionResult<List<InventoryItem>>> GetInventoriesFromEfCore()
+    {
+        var items = await _context.InventoryItems
+            .Select(x => new InventoryItem
+            {
+                Name = x.Name,
+                Price = x.Price,
+                PictureUrl = x.PictureUrl
+            })
+            .ToListAsync();
+
+        return Ok(items);
+    }
+}
+
+public class CreateInventoryRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public decimal Price { get; set; }
 }

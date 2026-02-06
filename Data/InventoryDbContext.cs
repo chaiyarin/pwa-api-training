@@ -10,6 +10,14 @@ public class ComputerInventoryItem
     public string PictureUrl { get; set; } = string.Empty;
 }
 
+public class InventoryItemEntity
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public string PictureUrl { get; set; } = string.Empty;
+}
+
 public class InventoryDbContext : DbContext
 {
     public InventoryDbContext(DbContextOptions<InventoryDbContext> options) : base(options)
@@ -17,6 +25,7 @@ public class InventoryDbContext : DbContext
     }
 
     public DbSet<ComputerInventoryItem> ComputerInventories { get; set; }
+    public DbSet<InventoryItemEntity> InventoryItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

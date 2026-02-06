@@ -32,10 +32,10 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 
 // Use CORS
-app.UseCors("AllowAll");
 
 app.UseAuthorization();
 
